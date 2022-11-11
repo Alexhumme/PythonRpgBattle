@@ -38,7 +38,7 @@ class item: # items que un personaje puede usar
 
 class personaje: # clase para la construccion de los personajes
 
-    def __init__(self, nombre, salud, ataque, defensa, velocidad, bolsa=[item()]):
+    def __init__(self, nombre, salud, ataque, defensa, velocidad, bolsa=["cancelar",item()]):
         self.id = " "
         self.nombre = nombre
         self.saludMax = salud #maxima salud posible
@@ -112,15 +112,6 @@ Bolsa:
             print(
                 "\n *** ❌ %s no tiene energia suficiente para potenciarse ❌ ***\n" % (self.nombre))
 
-    def curar(self):
-        if (self.bebida > 0):
-            print("\n *** %s se bebe un té... refrescante! +35hp🍵" % (self.nombre))
-            self.salud += 35
-            self.bebida -= 1
-            if self.salud > self.saludMax: self.salud = self.saludMax # si su salud actual es mayor al maximo, que se iguales 
-        else:
-            print("\n *** ❌ %s no tiene bebidas! ❌ ***" % (self.nombre))
-
     def uBolsa(self,rand=False):
         if len(self.bolsa) > 1:
             continuar = True
@@ -146,6 +137,7 @@ Bolsa:
                 for efect in uso[0]:
                     if efect == "hp":
                         self.salud += uso[1][uso[0].index(efect)]
+                        if self.salud > self.saludMax: self.salud = self.saludMax # si su salud actual es mayor al maximo, que se iguales 
                     elif efect == "atk":
                         self.ataque += uso[1][uso[0].index(efect)]
                     elif efect == "def":
@@ -222,8 +214,7 @@ Bolsa:
     5. combo (%s)💫
     6. meditar (%s)🧘
     7. mochila 🎒
-    Seleciones una de las opciones: 
-"""%(self.nombre,oponente.nombre,cmb,pUp)
+    Selecione una de las opciones: """%(self.nombre,oponente.nombre,cmb,pUp)
             )
             if sel == "1": self.desc(); return False
             elif sel == "2": oponente.desc(); return False
@@ -236,17 +227,22 @@ Bolsa:
         else: return False
 
 personajes = [
-    personaje("Alfonse", 80, 2, 5, 10,[
+    personaje("Alfonse🤖", 80, 2, 5, 10,[
+        "cancelar",
         item(cantidad=4),
-        item(nombre="piedra filosofal💎",cantidad=1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5]),
-        "cancelar"
+        item(nombre="piedra filosofal💎",cantidad=1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5])
         ]),
-    personaje("Shrek", 120, 1, 4, 9,[
+    personaje("Shrek👹", 120, 1, 4, 9,[
+        "cancelar",
         item(),
         item(nombre="cebolla🧅", cantidad=2,efectos=["hp","def"],valores=[30,7]),
-        item(nombre="caramelo🍬",cantidad=2,efectos=["vel","atk","hp"],valores=[2,1,-5]),
-        "cancelar"
-        ])
+        item(nombre="caramelo🍬",cantidad=2,efectos=["vel","atk","hp"],valores=[2,1,-5])
+        ]),
+    personaje("Pablo🐧",50,1,2,5,[
+        "cancelar",
+        item(),
+        item("imaginacion🌈",1,efectos=["hp","atk","def","vel"],valores=[50,50,50,50]),
+    ])
 ]
 con = True
 
@@ -286,4 +282,4 @@ def luchar(jugador: personaje, oponente: personaje):
     
 
 #select(personajes)
-luchar(personajes[1], personajes[0])
+luchar(personajes[2], personajes[1])
