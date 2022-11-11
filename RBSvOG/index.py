@@ -1,19 +1,55 @@
 import time
 import random
 import math
+"""
+from tkinter import *
 
+window = Tk()
+
+window.title("RBSvNull")
+window.resizable(False,False)
+canvas = Canvas(window, background= "black", width=700, height=500)
+canvas.pack()
+window.mainloop()
+"""
+
+class item: # items que un personaje puede usar
+    # el item por defecto es un té
+    def __init__(self,nombre="té🍵", cantidad=3, dialogo=("\n --- té refrescante que cura 35hp🍵"), efectos=["hp"], valores=[35]):
+        self.id = " "
+        self.usuario = " "
+        self.nombre = nombre
+        self.cantidad = cantidad
+        self.dialogo = dialogo
+        self.efectos = efectos
+        self.valores = valores
+    def usar(self):
+        print("     *** %s uso %s!"%(self.usuario,self.nombre))
+        for efect in self.efectos:
+            textE = ("        %s: "%efect)
+            if self.valores[self.efectos.index(efect)] >= 0: textE += " +"
+            textE+= str(self.valores[self.efectos.index(efect)])
+            print(textE)
+        self.cantidad-=1
+        return [self.efectos,self.valores]
+            
+
+            
 
 class personaje: # clase para la construccion de los personajes
-    def __init__(self, nombre, salud, ataque, defensa, velocidad):
+
+    def __init__(self, nombre, salud, ataque, defensa, velocidad, bolsa=[item()]):
+        self.id = " "
         self.nombre = nombre
         self.saludMax = salud #maxima salud posible
         self.salud = salud #salud actual
         self.ataque = ataque
         self.defensa = defensa
         self.velocidad = velocidad
+        self.bolsa = bolsa
         self.bebida = 3
         self.proteccion = False # escudo
-        self.puntos = 0 # energia, una mecanicade intercambio
+        self.puntos = 0 # energia, una mecanica de intercambio
 
     def atacar(self, oponente):
         print("\n *** %s ataca!" % (self.nombre))
@@ -32,22 +68,23 @@ class personaje: # clase para la construccion de los personajes
             con = compM(oponente)
 
             if not con and random.randint(0,10) >= 3:
-                print("+1 puntos para %s" % (self.nombre))
+                print("➕1️ puntos para %s" % (self.nombre))
                 self.puntos += 1
 
     def desc(self): # para obtener la info de un personaje
-        print("\n*** Descripcion de %s ***" % (self.nombre))
-        print(
-            """
-        hp: %s
-        Ataque: %s 
-        Defensa: %s
-        Velocidad: %s
-        Proteccion: %s
-        Puntos: %s
-        """
-            % (self.salud, self.ataque, self.defensa, self.velocidad, self.proteccion, self.puntos)
-        )
+        desc = """
+hp: %s
+Ataque: %s 
+Defensa: %s
+Velocidad: %s
+Proteccion: %s
+Puntos: %s
+Bolsa: 
+"""% (self.salud, self.ataque, self.defensa, self.velocidad, self.proteccion, self.puntos)
+        for item in self.bolsa:
+            if item != "cancelar": desc+="  -- %s. %s x%s \n"%(self.bolsa.index(item),item.nombre,item.cantidad)
+        print("\n*** Descripcion de %s ***" % (self.nombre))    
+        print(desc)
         print("*** ********************* ***\n")
 
     def protect(self): 
@@ -84,6 +121,47 @@ class personaje: # clase para la construccion de los personajes
         else:
             print("\n *** ❌ %s no tiene bebidas! ❌ ***" % (self.nombre))
 
+    def uBolsa(self,rand=False):
+        if len(self.bolsa) > 1:
+            continuar = True
+            print("\n *** bolsa de %s 🎒"%self.nombre)
+            # mostrar items en la mochila
+            for item in self.bolsa: 
+                if item!="cancelar":print("%s. %s x%s"%(self.bolsa.index(item),item.nombre,item.cantidad))
+                else: print("%s. %s "%(self.bolsa.index(item),item))
+            if not rand: # seleccion no aleatoria, manual.
+                valid = False
+                while not valid:
+                    sel = input("seleccion: "); 
+                    for item in self.bolsa:
+                        if str(self.bolsa.index(item)) == sel: 
+                            sel = item; valid = True; break
+                if sel == "cancelar": continuar = False
+            else: # seleccion aleatoria, pude ser cualquer cosa menos cancelar.
+                sel = "cancelar"
+                while sel == "cancelar": sel = random.choice(self.bolsa)
+            if continuar:
+                sel.usuario = self.nombre
+                uso = sel.usar()
+                for efect in uso[0]:
+                    if efect == "hp":
+                        self.salud += uso[1][uso[0].index(efect)]
+                    elif efect == "atk":
+                        self.ataque += uso[1][uso[0].index(efect)]
+                    elif efect == "def":
+                        self.defensa += uso[1][uso[0].index(efect)]
+                    elif efect == "vel":
+                        self.velocidad += uso[1][uso[0].index(efect)]
+                    elif efect == "pnt":
+                        self.puntos += uso[1][uso[0].index(efect)]
+
+                if sel.cantidad <= 0: self.bolsa.remove(sel)
+                return True
+            else: return False
+        else: 
+            print("\n *** ❌ %s no tiene objetos! ❌ ***" % (self.nombre))
+            return False
+
     def hCombo(self, oponente):
         if (self.puntos >= 3):
             print("\n~~~❇️COMBO❕❇️~~~")
@@ -115,25 +193,62 @@ class personaje: # clase para la construccion de los personajes
                 opc = ["1", "1", "2"]
             if self.salud<=self.saludMax*3/4: # si tiene menos de 3 cuartos de su salud maxima, podra intentar curarse
                 opc.append("5")
-        sel = random.choice(opc)  # la accion es aleatoria
-        if sel == "1":
-            self.atacar(oponente)
-        elif sel == "2":
-            self.protect()
-        elif sel == "3":
-            self.hCombo(oponente)
-        elif sel == "4":
-            self.boost()
-        elif sel == "5":
-            self.curar()
+            sel = random.choice(opc)  # la accion es aleatoria
+            if sel == "1": self.atacar(oponente)
+            elif sel == "2": self.protect()
+            elif sel == "3": self.hCombo(oponente)
+            elif sel == "4": self.boost()
+            elif sel == "5": self.uBolsa(True)
 
+    def act(self, oponente):
+        if self.salud > 0:
+            if self.puntos >= 3:
+                cmb = "✅"
+                pUp = "✅"
+            elif self.puntos >= 1:
+                cmb = "❌"
+                pUp = "✅"
+            else:
+                cmb = "❌"
+                pUp = "❌"
+                
+            sel = input(
+"""
+\nAcciones: 
+    1. stats (%s)🆔
+    2. stats del oponente (%s)🆔
+    3. atacar🗡️
+    4. protect🛡️
+    5. combo (%s)💫
+    6. meditar (%s)🧘
+    7. mochila 🎒
+    Seleciones una de las opciones: 
+"""%(self.nombre,oponente.nombre,cmb,pUp)
+            )
+            if sel == "1": self.desc(); return False
+            elif sel == "2": oponente.desc(); return False
+            elif sel == "3":self.atacar(oponente) ;return True
+            elif sel == "4": self.protect() ;return True
+            elif sel == "5": self.hCombo(oponente) ;return True
+            elif sel == "6": self.boost() ;return True
+            elif sel == "7": return self.uBolsa(False)
+            else: return False
+        else: return False
 
 personajes = [
-    personaje("Alfonse", 80, 2, 5, 10),
-    personaje("Shrek", 120, 1, 4, 9)
+    personaje("Alfonse", 80, 2, 5, 10,[
+        item(cantidad=4),
+        item(nombre="piedra filosofal💎",cantidad=1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5]),
+        "cancelar"
+        ]),
+    personaje("Shrek", 120, 1, 4, 9,[
+        item(),
+        item(nombre="cebolla🧅", cantidad=2,efectos=["hp","def"],valores=[30,7]),
+        item(nombre="caramelo🍬",cantidad=2,efectos=["vel","atk","hp"],valores=[2,1,-5]),
+        "cancelar"
+        ])
 ]
 con = True
-
 
 def compM(self):
     if (self.salud < 1):
@@ -150,74 +265,25 @@ def select(chars:list):
     sel = input("seleccion : ")
 
 
-select(personajes)
-
-
 def luchar(jugador: personaje, oponente: personaje):
-    print("++++ INICIA EL COMBATE ++++")
+    print("\n++++ INICIA EL COMBATE ++++")
     print("++++ %s ⚔️  %s  ++++\n" % (jugador.nombre, oponente.nombre))
+    
     turno = 0
-    jugador.desc()
-    oponente.desc()
-
-    while jugador.salud > 0 and oponente.salud > 0:
+    while jugador.salud > 0 and oponente.salud > 0: #bucle principal
         turno += 1
         print(
-            "\n▶️  turno %s : ( %s %s hp) ⚔️ (  %s %s hp) ▶️"
+            "\n▶️  turno %s : (%s %s hp) ⚔️ ( %s %s hp) ▶️"
             % (turno, jugador.nombre,jugador.salud,oponente.nombre, oponente.salud)
             )
         if jugador.velocidad >= oponente.velocidad:
-            jugador.autoAct(oponente)
+            while not jugador.act(oponente): False
             oponente.autoAct(jugador)
         else:
             oponente.autoAct(jugador)
-            jugador.autoAct(oponente)
+            while not jugador.act(oponente): False
             
-    jugador.desc()
-    oponente.desc()
+    
 
-    """
-    turno = 0
-    while (not compM(jugador) and not compM(oponente)):
-        turno += 1
-        # time.sleep(2);
-        print(
-              "\nturno %s : ( %s %s hp) ⚔️ (  %s %s hp)"
-              % (turno, jugador.nombre,jugador.salud,oponente.nombre, oponente.salud)
-              )
-        consulta = "0"
-        while True:
-            if jugador.combo:
-                cmb = "✅"
-            else:
-                cmb = "❌"
-            consulta = input(
-                "\nAcciones: \n"
-                " 1. descripcion mia🆔\n"
-                " 2. descripcion del enemigo🆔\n"
-                " 3. atacar🗡️\n"
-                " 4. protect🛡️\n"
-                " 5. combo ("+(cmb)+")💫\n"
-                " Seleciones una de las opciones: "
-            )
-            if consulta == "1":
-                desc(jugador)
-            elif consulta == "2":
-                desc(en)
-            elif consulta == "3":
-                atacar(jugador, en)
-                break
-            elif consulta == "4":
-                protect(jugador)
-                break
-            elif consulta == "5":
-                combo(jugador, en)
-                break
-
-        # time.sleep(2);
-        autoAct(en, jugador)
-
-    print("+++++++++++GAME OVER++++++++++++")
-    """
-
-luchar(personajes[0], personajes[1])
+#select(personajes)
+luchar(personajes[1], personajes[0])
