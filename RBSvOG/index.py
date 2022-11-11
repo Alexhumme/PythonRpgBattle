@@ -282,4 +282,4 @@ def luchar(jugador: personaje, oponente: personaje):
     
 
 #select(personajes)
-luchar(personajes[2], personajes[1])
+luchar(personajes[2], personajes[0])
