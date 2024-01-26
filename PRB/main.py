@@ -1,17 +1,5 @@
-import time
 import random
 import math
-"""
-from tkinter import *
-
-window = Tk()
-
-window.title("RBSvNull")
-window.resizable(False,False)
-canvas = Canvas(window, background= "black", width=700, height=500)
-canvas.pack()
-window.mainloop()
-"""
 
 class item: # items que un personaje puede usar
     # el item por defecto es un té
@@ -157,9 +145,7 @@ Bolsa:
     def hCombo(self, oponente):
         if (self.puntos >= 3):
             print("\n~~~❇️COMBO❕❇️~~~")
-            # time.sleep(2);
             self.atacar(oponente)
-            # time.sleep(1);
             self.atacar(oponente)
             self.protect()
             self.puntos -= 3
@@ -215,7 +201,7 @@ Bolsa:
     6. meditar (%s)🧘
     7. mochila 🎒
     Selecione una de las opciones: """%(self.nombre,oponente.nombre,cmb,pUp)
-            )
+            ) # Las acciones que devuelven True consumen 1 turno
             if sel == "1": self.desc(); return False
             elif sel == "2": oponente.desc(); return False
             elif sel == "3":self.atacar(oponente) ;return True
@@ -272,14 +258,18 @@ def luchar(jugador: personaje, oponente: personaje):
             "\n▶️  turno %s : (%s %s hp) ⚔️ ( %s %s hp) ▶️"
             % (turno, jugador.nombre,jugador.salud,oponente.nombre, oponente.salud)
             )
+        # cambia jugador.act por jugador.autoAct para una batalla automatica
         if jugador.velocidad >= oponente.velocidad:
-            while not jugador.act(oponente): False
+            #while not jugador.act(oponente): False 
+            jugador.autoAct(oponente)
             oponente.autoAct(jugador)
         else:
             oponente.autoAct(jugador)
-            while not jugador.act(oponente): False
+            jugador.autoAct(oponente)
+            #while not jugador.act(oponente): False
+        
             
     
 
 #select(personajes)
-luchar(personajes[2], personajes[0])
+luchar(personajes[1], personajes[0])
